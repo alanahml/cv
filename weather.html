@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>Weather Home</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+    <link rel="stylesheet" href="styles.css">
+    <script src="rainscript.js" defer></script>
+</head>
+
+<body class="weatherHome">
+    <a href="index.html" class="title-text" style="position: fixed; right: 1em; top: 1em;z-index: 99;">back home</a>
+   
+    <div class="headWrapper">
+    <div class="row">
+        <div style="font-family:monospace; font-size: 2em;" id="now">time</div>
+        <span class="headText">Shall we check the <i>weather?</i></span>
+     </div>
+       
+    </div>
+    
+    <h1>
+    Today it is <span id="temp">N degrees</span>, with <i><span id="rain">...</span></i> in <span id="location">...</span>.
+    </h1>
+
+
+    <div class="emojiWrapper">
+        <div class="emojiBox">🏔</div>
+        <div class="emojiBox">🏙</div>
+        <div class="emojiBox">🏕</div>
+        <div class="emojiBox">🏖</div>
+    </div>
+
+    <p>This build was inspired by <a href="https://weathergradient.com/">this site that creates a gradient based on the weather</a>
+    </p>
+    
+
+
+  
+
+    <div id="rainContainer"></div>
+  
+</body>
+
+
+<script src="weatherapi.js" defer></script>
+</html>
