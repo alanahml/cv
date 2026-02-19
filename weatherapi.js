@@ -74,22 +74,29 @@ function processWeatherData(data){
 	const country = data.sys.country;
 	const rain  = data.weather[0].description.includes("rain")
 
+	console.log('Is it raining?', rain);
+	console.log('Weather description:', weather);
+
 
 	displayData(now, temp, location, weather, country)
 	console.log(weather.includes("rain"))
 
-	function showRain() {
-		var x = document.querySelector("canvas");
-		console.log({x})
-		if (rain) {
-		x.style.display = "block";
-		} else {
-			x.style.display = "none";
-		}
+	function controlRain() {
+		const isItRainingDiv = document.getElementById('isItRaining');
+		const rainDiv = document.getElementById('rain');
 		
+		if (rain) {
+			window.startRain();
+			if (isItRainingDiv) isItRainingDiv.style.display = 'block';
+			if (rainDiv) rainDiv.style.display = 'block';
+		} else {
+			window.stopRain();
+			if (isItRainingDiv) isItRainingDiv.style.display = 'none';
+			if (rainDiv) rainDiv.style.display = 'none';
+		}
 	}
 
-	showRain()
+	controlRain()
 	
 }
 

@@ -31,11 +31,107 @@
 }
 
 .thoughtWrapper {
-    display: flex;
-    flex-direction: row;
+    display: grid;
     gap: 8px;
     width: 100%;
     height: auto;
+    /* default for small screens: max 2 columns */
+    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    margin-top: 180px; /* leave space for centered active input */
+}
+
+.thoughtItem {
+    position: relative;
+}
+
+#activeContainer {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    z-index: 100;
+}
+
+.thoughtItem input[type="text"] {
+    width: 100%;
+    box-sizing: border-box;
+    padding: 0.5em;
+    border: 1px solid #a0a0a0;
+    border-radius: 8px;
+    background: linear-gradient(to bottom, #f4f7fa 0%, #e7ecf0 100%);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.1);
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.thoughtItem.saved .text {
+    display: block;
+    padding: 0.5em;
+    border: 1px solid #a0a0a0;
+    border-radius: 8px;
+    background: linear-gradient(to bottom, #f4f7fa 0%, #e7ecf0 100%);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.12), 0 2px 4px rgba(0,0,0,0.1);
+}
+
+.thoughtItem.saved .text:hover {
+    background: linear-gradient(to bottom, #ffffff 0%, #f0f4f8 100%);
+}
+
+.thoughtItem input[type="text"]:focus {
+    outline: none;
+    background: linear-gradient(to bottom, #ffffff 0%, #f0f4f8 100%);
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.12), 0 0 5px rgba(102,175,233,0.6);
+}
+
+.thoughtItem input.saved {
+    animation: glow 0.6s ease-in-out;
+}
+
+#addNote {
+    padding: 0.6em 1.2em;
+    font-size: 1em;
+    border: 1px solid #a0a0a0;
+    border-radius: 8px;
+    background: linear-gradient(to bottom, #f4f7fa 0%, #e7ecf0 100%);
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    cursor: pointer;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+#addNote:hover {
+    background: linear-gradient(to bottom, #ffffff 0%, #f0f4f8 100%);
+    box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+@keyframes glow {
+    0% { box-shadow: 0 0 0px #0aa588; }
+    50% { box-shadow: 0 0 12px #0aa588; }
+    100% { box-shadow: 0 0 0px #0aa588; }
+}
+
+.thoughtItem .delete {
+    position: absolute;
+    top: 0;
+    right: 0;
+    transform: translate(50%, -50%);
+    background: rgba(0,0,0,0.5);
+    border: none;
+    font-size: 1.2em;
+    cursor: pointer;
+    color: #fff;
+    line-height: 1;
+    padding: 0 0.3em;
+    border-radius: 50%;
+}
+
+.thoughtItem .delete:hover {
+    background: rgba(0,0,0,0.7);
+}
+
+/* desktop: up to 5 columns */
+@media screen and (min-width: 1024px) {
+    .thoughtWrapper {
+        grid-template-columns: repeat(5, 1fr);
+    }
 }
 
 input {
@@ -62,10 +158,26 @@ body {
     min-height: 100%;
     margin: 0;
     padding: 0;
-    background-color: #84abfd;
-    /* background: url(./assets/bg.JPG); */
+    /* mute pastel gradient that slowly shifts */
+    background: linear-gradient(120deg, #f0f0f0 0%, #e0e0e0 50%, #d0d0d0 100%);
+    background-size: 600% 600%;
+    animation: gradientNoise 120s ease infinite;
     background-position: center center;
-    background-size: cover;
+    background-repeat: no-repeat;
+  }
+  
+  /* subtle noise overlay using SVG filter */
+  body::after {
+    content: "";
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    pointer-events: none;
+    background: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='100' height='100'><filter id='noise'><feTurbulence type='fractalNoise' baseFrequency='0.8' stitchTiles='stitch'/></filter><rect width='100%' height='100%' filter='url(%23noise)'/></svg>");
+    opacity: 0.05;
+    z-index: 0;
   }
 .weatherHome {
     padding: 4em;
@@ -91,11 +203,32 @@ button {
 h1 {
     font-family: Neue Haas Grotesk Display Pro;
     font-size: 8em;
+    letter-spacing: -0.5px;
     color: black;
 }
 h3 {
     font-family: Neue Haas Grotesk Display Pro;
     font-size: 4em;
+    letter-spacing: -0.5px;
+    color: black;
+}
+
+h4 {
+    font-family: 'Times New Roman', Times, serif;
+    font-size: 2em;
+    letter-spacing: -0.5px;
+    color: black;
+}
+
+h5 {
+    font-family: Neue Haas Grotesk Display Pro;
+    font-size: 1.5em;
+    color: black;
+}
+
+h6 {
+    font-family: Neue Haas Grotesk Display Pro;
+    font-size: 41em;
     color: black;
 }
 #nav {
@@ -103,10 +236,10 @@ h3 {
     gap: 8px;
     width: 12em;
     height: auto;
-    position: sticky;
+    position: fixed;
+    top: 14px;
     padding: 1em;
-    top: 0px;
-    left: 5em;
+    left: 3em;
     border: dotted 2px grey;
     background-color:rgba(201, 76, 76, 0.3);
     backdrop-filter: blur(10px);
@@ -114,14 +247,33 @@ h3 {
 }
 
 .title {
-    font-family: Neue Haas Grotesk Display Pro;
+    font-family: 'Times New Roman', Times, serif;
     font-weight: 400;
     font-size: 10em;
+    letter-spacing: -5px;
+    line-height: 1em;
     color: rgb(5, 63, 255);
     filter: drop-shadow(0px 4px 12.5px #4680F7);
     mix-blend-mode: hard-light;
 
 }
+
+.ig-wrapper {
+  max-width: 300px;
+  max-height: 280px;
+  display: flex;
+  align-items: center;    /* vertical center */
+  justify-content: center;
+  border-radius: 12px;
+  overflow: hidden;
+  box-shadow: 0 10px 20px rgba(0,0,0,0.15);
+}
+
+.ig-wrapper instagram-media {
+    translate: -60px;
+}
+
+
 
 h3, h4, h5 {
     font-family: Neue Montreal;
@@ -170,9 +322,9 @@ a {
 
 a:hover {
     background-color: blue;
-   color: rgb(171, 165, 255);
-   filter: blur(1px);
-    letter-spacing: 1.2px;
+    color: rgb(255, 255, 255);
+    filter: blur(0.05em);
+    letter-spacing: 0.05em;
     text-decoration: dotted;
 }
 
@@ -222,6 +374,12 @@ h2 {
     justify-content: left;
     flex-direction: column;
 
+}
+
+.footer-text {
+    position: fixed;
+    bottom: 1em;
+    color: rgb(8, 202, 89);
 }
 
 .row {
@@ -496,6 +654,23 @@ canvas {
 	100% {
 		background-position: 0% 50%;
 	}
+}
+
+.list-wrapper {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+}
+
+.list-wrapper > * {
+	margin: 0;
+}
+
+/* keyframe for body background animation */
+@keyframes gradientNoise {
+    0% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+    100% { background-position: 0% 50%; }
 }
 
 @media screen and (max-width: 480px) {

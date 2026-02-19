@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+
+<html>
+
+<head>
+    <title>notes</title>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, user-scalable=no" />
+    <link rel="stylesheet" href="styles.css">
+    <script>
+    let notes = JSON.parse(localStorage.getItem('notes') || '[]');
+
+    function createGridItem(text, index) {
+        const item = document.createElement('div');
+        item.className = 'thoughtItem saved';
+        item.innerHTML = `<span class="text"></span><button class="delete" aria-label="delete">×</button>`;
+        item.querySelector('.text').textContent = text;
+
+        const del = item.querySelector('.delete');
+        del.addEventListener('click', () => {
+            notes.splice(index, 1);
+            localStorage.setItem('notes', JSON.stringify(notes));
+            renderGrid();
+        });
+        return item;
+    }
+
+    function renderGrid() {
+        const wrapper = document.querySelector('.thoughtWrapper');
+        wrapper.innerHTML = '';
+        notes.forEach((note, idx) => {
+            const gridItem = createGridItem(note, idx);
+            wrapper.appendChild(gridItem);
+        });
+    }
+
+    function saveActive() {
+        const input = document.getElementById('activeInput');
+        const val = input.value.trim();
+        if (!val) return;
+
+        notes.push(val);
+        localStorage.setItem('notes', JSON.stringify(notes));
+
+        // temporarily add an invisible item to calculate destination
+        const wrapper = document.querySelector('.thoughtWrapper');
+        const temp = createGridItem(val, notes.length - 1);
+        temp.style.visibility = 'hidden';
+        wrapper.appendChild(temp);
+
+        const activeItem = document.getElementById('activeThought');
+        const activeRect = activeItem.getBoundingClientRect();
+        const destRect = temp.getBoundingClientRect();
+
+        // render the real grid (will replace the temp item)
+        renderGrid();
+
+        const clone = activeItem.cloneNode(true);
+        clone.style.position = 'fixed';
+        clone.style.left = activeRect.left + 'px';
+        clone.style.top = activeRect.top + 'px';
+        clone.style.width = activeRect.width + 'px';
+        clone.style.height = activeRect.height + 'px';
+        clone.style.margin = 0;
+        clone.style.transition = 'all 0.5s ease';
+        document.body.appendChild(clone);
+
+        requestAnimationFrame(() => {
+            clone.style.left = destRect.left + 'px';
+            clone.style.top = destRect.top + 'px';
+        });
+
+        clone.addEventListener('transitionend', () => {
+            clone.remove();
+        });
+
+        input.value = '';
+        input.focus();
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+        renderGrid();
+        const activeInput = document.getElementById('activeInput');
+        activeInput.addEventListener('keydown', function (e) {
+            if (e.key === 'Enter') {
+                e.preventDefault();
+                saveActive();
+            }
+        });
+        activeInput.focus();
+    });
+    </script>
+</head>
+
+<body>
+    <a href="index.html" class="title-text" style="position: fixed; right: 1em; margin-top: 1em; z-index: 99;">back</a>
+    <h3 style="opacity: 0.1;">a note from someone who was here</h3>
+    <div id="activeContainer">
+        <div class="thoughtItem" id="activeThought">
+            <input type="text" id="activeInput" name="thought" placeholder="...">
+            <button class="delete" style="display:none;" aria-label="delete">×</button>
+        </div>
+    </div>
+
+    <div class="thoughtWrapper"></div>
+
+</body>
+
+</html>

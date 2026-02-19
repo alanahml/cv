@@ -1,7 +1,16 @@
-// alert('hellooo welcome');
-// alert('u are here');
-// alert('im glad');
-// alert('it was getting dark');
+
+// Show daily welcome alert
+function showDailyAlert() {
+  const today = new Date().toDateString();
+  const lastAlertDate = localStorage.getItem('lastAlertDate');
+  
+  if (lastAlertDate !== today) {
+    alert('im glad u are here -alanah');
+    localStorage.setItem('lastAlertDate', today);
+  }
+}
+
+showDailyAlert();
 
 
 
@@ -13,7 +22,14 @@ window.onload = () => {
   //   alert("Hi");  // native function alert
   // }
 
-  //rain FX
+//rain FX
+let rainAnimationId = null;
+let rainStarted = false;
+
+window.startRain = function() {
+  if (rainStarted) return; // Already running
+  rainStarted = true;
+  
   (function() {
     var squares = [];
     var canvas = null;
@@ -105,7 +121,7 @@ window.onload = () => {
   
       render();
   
-      requestAnimationFrame(step);
+      rainAnimationId = requestAnimationFrame(step);
     }
   
     var render = function() {
@@ -130,7 +146,7 @@ window.onload = () => {
     }
   
     init();
-    requestAnimationFrame(step);
+    rainAnimationId = requestAnimationFrame(step);
   
     // Helper Function
     var getActiveNum = function() {
@@ -207,6 +223,40 @@ window.onload = () => {
       };
     }
   })();
+};
+
+window.stopRain = function() {
+  rainStarted = false;
+  if (rainAnimationId) {
+    cancelAnimationFrame(rainAnimationId);
+  }
+  const canvas = document.querySelector('canvas');
+  if (canvas) {
+    canvas.remove();
+  }
+};
+
+  // Display current time and date in id="now"
+  function updateTime() {
+    const now = new Date();
+    const days = ['Su', 'Mo', 'Tu', 'Wed', 'Thu', 'Fr', 'Sat'];
+    const months = ['Jan.', 'Feb.', 'Mar.', 'Apr.', 'May', 'June', 'July', 'Aug.', 'Sept.', 'Oct.', 'Nov.', 'Dec.'];
+    
+    const dayName = days[now.getDay()];
+    const monthName = months[now.getMonth()];
+    const date = now.getDate();
+    
+    let hours = now.getHours();
+    const minutes = String(now.getMinutes()).padStart(2, '0');
+    const ampm = hours >= 12 ? 'PM' : 'AM';
+    hours = hours % 12 || 12;
+    hours = String(hours).padStart(2, '0');
+    
+    document.getElementById('now').textContent = `${dayName} ${monthName} ${date} ${hours}:${minutes} ${ampm}`;
+  }
+  
+  updateTime();
+  setInterval(updateTime, 1000);
 
 }
 
