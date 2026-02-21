@@ -188,7 +188,8 @@ body {
 	height: 100vh;
 }
 
-button {
+/* fixed-nav button (use a class if more buttons are added) */
+button.nav-toggle {
     box-shadow: 2px 2px 1.5px 1px rgba(236, 236, 236, 0.55) inset;
     background-color: #0aa588;
     width: 2em;
@@ -197,7 +198,64 @@ button {
     top: 10px;
     left: 10px;
     z-index: 100;
-    
+}
+
+/* general button utility classes */
+.btn {
+    display: inline-block;
+    font-family: inherit;
+    font-size: 1rem;
+    font-weight: 500;
+    padding: 0.6em 1.2em;
+    border-radius: 24px;
+    border: 1px solid transparent;
+    cursor: pointer;
+    text-align: center;
+    text-decoration: none;
+    transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+
+.btn-primary {
+    margin: 1em;
+    min-width: 100px;
+    position: relative;
+    background: linear-gradient(180deg, rgba(104, 151, 211, 0.50) 0%, #BAE3F6 100%);
+    color: #1a2b5c;
+    border: 2px solid rgba(104, 157, 211, 0.50);
+    border-radius: 489.676px;
+    box-shadow: 0 0 58.761px 0 rgba(255, 255, 255, 0.21) inset,
+                0 14.69px 44.071px 0 rgba(0, 128, 161, 0.33),
+                0 4.897px 4.897px 0 rgba(14, 97, 192, 0.19),
+                0 14.69px 9.794px 0 rgba(14, 97, 192, 0.19);
+}
+
+.btn-primary::before {
+    content: '';
+    position: absolute;
+    top: 8%;
+    left: 10%;
+    width: 80%;
+    height: 48%;
+    border-radius: 489.676px;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.50) 0%, rgba(255, 255, 255, 0.00) 100%);
+    pointer-events: none;
+}
+
+.btn-primary:hover,
+.btn-primary:focus {
+    background: linear-gradient(180deg, rgba(124, 171, 231, 0.60) 0%, #cceeff 100%);
+}
+
+.btn-secondary {
+    background: #fff;
+    color: #333;
+    border: 1px solid #ccc;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.btn-secondary:hover,
+.btn-secondary:focus {
+    background: #fafafa;
 }
 
 h1 {
@@ -243,6 +301,17 @@ h6 {
     border: dotted 2px grey;
     background-color:rgba(201, 76, 76, 0.3);
     backdrop-filter: blur(10px);
+    z-index: 99;
+}
+
+#intent {
+    display: block;
+    width: 12em;
+    height: auto;
+    position: fixed;
+    top: 14px;
+    padding: 1em;
+    right: 2em;
     z-index: 99;
 }
 
@@ -346,7 +415,7 @@ img {
 .p {
     font-family: Neue Montreal;
     font-weight: 400;
-    font-size: 1em;
+    font-size: 0.8em;
     display: inline;
 }
 
@@ -684,4 +753,96 @@ canvas {
         font-size: 4em !important;
         max-width: 100%;
     }
+}
+
+/* Calendar viewer styles */
+#calendar {
+    -webkit-overflow-scrolling: touch;
+}
+
+.calendar-thumb {
+    border-radius: 8px;
+    box-shadow: 0 6px 16px rgba(0,0,0,0.12);
+    transition: transform 0.25s ease, box-shadow 0.25s ease, filter 0.25s ease;
+    max-height: 260px;
+}
+.calendar-thumb:hover {
+    transform: translateY(-6px) scale(1.02);
+    box-shadow: 0 12px 28px rgba(0,100,220,0.18);
+    filter: saturate(1.05) contrast(1.02);
+}
+
+/* modal */
+#calendar-modal {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+}
+#calendar-modal-backdrop {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(180deg, rgba(0,12,40,0.55), rgba(0,40,80,0.55));
+    backdrop-filter: blur(6px) saturate(1.05);
+}
+#calendar-modal-content {
+    position: relative;
+    z-index: 2;
+    display: flex;
+    align-items: center;
+    gap: 1em;
+    max-width: 92vw;
+    max-height: 88vh;
+    padding: 1em;
+}
+#calendar-modal-img {
+    max-width: calc(92vw - 160px);
+    max-height: 80vh;
+    border-radius: 10px;
+    box-shadow: 0 24px 60px rgba(12,60,140,0.45);
+    transition: transform 0.28s ease, opacity 0.28s ease;
+}
+.calendar-nav {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(255,255,255,0.06);
+    color: #fff;
+    border: none;
+    width: 48px;
+    height: 48px;
+    font-size: 2rem;
+    border-radius: 12px;
+    cursor: pointer;
+    backdrop-filter: blur(4px);
+    box-shadow: 0 8px 24px rgba(0,0,0,0.3);
+}
+#calendar-close {
+    position: absolute;
+    top: -12px;
+    right: -12px;
+    z-index: 3;
+    background: #fff;
+    border: none;
+    width: 36px;
+    height: 36px;
+    border-radius: 50%;
+    box-shadow: 0 6px 18px rgba(0,0,0,0.25);
+    cursor: pointer;
+    font-size: 1.25rem;
+}
+
+/* subtle open/close animation */
+#calendar-modal.open #calendar-modal-img {
+    transform: translateY(0);
+    opacity: 1;
+}
+
+#calendar-modal-img { transform: translateY(6px); opacity: 0.98; }
+
+@media (max-width: 720px) {
+    #calendar-modal-img { max-width: 86vw; }
+    .calendar-nav { width: 40px; height: 40px; }
 }
