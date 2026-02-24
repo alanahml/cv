@@ -1,0 +1,896 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>alanah 林 — explorations</title>
+    <link rel="stylesheet" href="styles.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300;1,400&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body.explore {
+            background: #fff;
+            font-family: 'Times New Roman', Times, serif;
+            animation: none;
+            overflow: hidden;
+            height: 100vh;
+        }
+        body.explore::after { display: none; }
+
+        /* ── switcher ── */
+        .exp-switcher {
+            position: fixed;
+            top: 1.5em;
+            left: 1.5em;
+            z-index: 1000;
+            display: flex;
+            gap: 0;
+        }
+        .exp-tab {
+            font-family: monospace;
+            font-size: 0.72em;
+            padding: 0.4em 0.9em;
+            border: 1px solid #000;
+            border-right: none;
+            background: #fff;
+            cursor: pointer;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            color: #000;
+        }
+        .exp-tab:last-child { border-right: 1px solid #000; }
+        .exp-tab.active { background: #000; color: #fff; }
+
+        .exp-layout { display: none; width: 100vw; height: 100vh; }
+        .exp-layout.visible { display: block; }
+
+
+        /* ════════════════════════════════════════════
+           01 — SCATTER
+           drag to pan a 2D canvas of project cards
+        ════════════════════════════════════════════ */
+        #layout-1 {
+            background: #f9f7f4;
+            overflow: hidden;
+            cursor: grab;
+            position: relative;
+        }
+        #layout-1:active { cursor: grabbing; }
+
+        .scatter-canvas {
+            position: absolute;
+            width: 3200px;
+            height: 2400px;
+            will-change: transform;
+        }
+
+        .sc-item {
+            position: absolute;
+            width: 190px;
+            background: #fff;
+            border: 1px solid #000;
+            user-select: none;
+            transition: box-shadow 0.12s;
+        }
+        .sc-item:hover {
+            box-shadow: 6px 6px 0 #000;
+            z-index: 20;
+        }
+        .sc-item[data-href]:not([data-href="#"]) { cursor: pointer; }
+
+        .sc-num {
+            font-family: monospace;
+            font-size: 0.65em;
+            letter-spacing: 0.08em;
+            padding: 0.4em 0.7em;
+            background: #000;
+            color: #fff;
+            display: block;
+        }
+        .sc-title {
+            font-family: 'Times New Roman', serif;
+            font-size: 1.05em;
+            line-height: 1.25;
+            padding: 0.6em 0.7em 0.4em;
+            display: block;
+        }
+        .sc-meta {
+            font-family: monospace;
+            font-size: 0.6em;
+            color: #888;
+            padding: 0.35em 0.7em 0.5em;
+            border-top: 1px dashed #ddd;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .sc-hint {
+            position: absolute;
+            bottom: 1.5em;
+            right: 1.5em;
+            font-family: monospace;
+            font-size: 0.65em;
+            color: #bbb;
+            letter-spacing: 0.05em;
+            pointer-events: none;
+        }
+
+
+        /* ════════════════════════════════════════════
+           02 — TYPE
+           projects as full-width oversized type
+        ════════════════════════════════════════════ */
+        #layout-2 {
+            background: #f4f0e8;
+            overflow-y: auto;
+        }
+
+        .type-head {
+            padding: 4.5em 1.2em 0.6em;
+            display: flex;
+            align-items: baseline;
+            gap: 2em;
+            border-bottom: 2px solid #000;
+        }
+        .type-head-name {
+            font-family: monospace;
+            font-size: 0.7em;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-weight: normal;
+        }
+        .type-fbar {
+            display: flex;
+            gap: 2em;
+        }
+        .tf {
+            font-family: monospace;
+            font-size: 0.68em;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            background: none;
+            border: none;
+            cursor: pointer;
+            color: #bbb;
+            padding: 0;
+            transition: color 0.1s;
+        }
+        .tf.active, .tf:hover { color: #000; }
+        .tf.active { text-decoration: underline; text-underline-offset: 3px; }
+
+        .type-row {
+            display: grid;
+            grid-template-columns: 3.2em 1fr 6em;
+            align-items: center;
+            border-bottom: 1px solid #bbb;
+            padding: 0 1.2em;
+            cursor: default;
+            transition: background 0.08s;
+            overflow: hidden;
+        }
+        .type-row[data-href]:not([data-href="#"]) { cursor: pointer; }
+        .type-row:hover { background: #000; }
+        .type-row:hover .tr-num,
+        .type-row:hover .tr-year { color: #555; }
+        .type-row:hover .tr-name { color: #f4f0e8; }
+
+        .tr-num {
+            font-family: monospace;
+            font-size: 0.68em;
+            color: #bbb;
+            letter-spacing: 0.06em;
+        }
+        .tr-name {
+            font-family: 'Times New Roman', serif;
+            font-size: clamp(2rem, 5.8vw, 5rem);
+            line-height: 1.05;
+            white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            padding: 0.08em 0;
+            color: #000;
+            transition: color 0.08s;
+        }
+        .tr-year {
+            font-family: monospace;
+            font-size: 0.68em;
+            color: #bbb;
+            text-align: right;
+            letter-spacing: 0.04em;
+            transition: color 0.08s;
+        }
+        .type-row.hidden { display: none; }
+
+
+        /* ════════════════════════════════════════════
+           03 — GRID
+           tight equal-cell grid, dark, hover reveals
+        ════════════════════════════════════════════ */
+        #layout-3 {
+            background: #0d0d0d;
+            position: relative;
+        }
+
+        .grid-wordmark {
+            position: fixed;
+            top: 1.5em;
+            right: 1.5em;
+            font-family: monospace;
+            font-size: 0.65em;
+            color: #333;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            z-index: 10;
+            pointer-events: none;
+        }
+
+        .grid-canvas {
+            display: grid;
+            grid-template-columns: repeat(5, 1fr);
+            grid-template-rows: repeat(3, 1fr);
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .gc {
+            border: 1px solid #1f1f1f;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            cursor: default;
+            transition: background 0.15s, border-color 0.15s;
+        }
+        .gc[data-href]:not([data-href="#"]) { cursor: pointer; }
+        .gc:not(.gc-empty):hover {
+            background: #fff;
+            border-color: #fff;
+            z-index: 5;
+        }
+
+        .gc-index {
+            font-family: monospace;
+            font-size: 2.2em;
+            color: #222;
+            transition: opacity 0.15s;
+            position: relative;
+            z-index: 1;
+        }
+        .gc:hover .gc-index { opacity: 0; }
+
+        .gc-reveal {
+            position: absolute;
+            inset: 0;
+            padding: 1.2em;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-end;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+        .gc:hover .gc-reveal { opacity: 1; }
+
+        .gc-name {
+            font-family: 'Times New Roman', serif;
+            font-size: clamp(0.8rem, 1.6vw, 1.1rem);
+            line-height: 1.2;
+            color: #000;
+        }
+        .gc-cat {
+            font-family: monospace;
+            font-size: 0.55em;
+            color: #888;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            margin-top: 0.4em;
+        }
+        .gc-yr {
+            font-family: monospace;
+            font-size: 0.55em;
+            color: #aaa;
+            margin-top: 0.15em;
+        }
+
+        .gc.gc-empty { cursor: default; pointer-events: none; }
+        .gc-empty .gc-index { color: #161616; }
+
+        .gc.gf-hidden {
+            opacity: 0.06;
+            pointer-events: none;
+        }
+
+        .grid-fbar {
+            position: fixed;
+            bottom: 1.5em;
+            left: 1.5em;
+            display: flex;
+            gap: 0.4em;
+            z-index: 10;
+        }
+        .gf {
+            font-family: monospace;
+            font-size: 0.65em;
+            text-transform: uppercase;
+            letter-spacing: 0.06em;
+            border: 1px solid #2a2a2a;
+            background: none;
+            color: #444;
+            padding: 0.35em 0.75em;
+            cursor: pointer;
+            transition: all 0.12s;
+        }
+        .gf.active, .gf:hover { border-color: #fff; color: #fff; }
+
+
+        /* ════════════════════════════════════════════
+           04 — ARCH
+           architecture portfolio — BU Arquitectura style
+           calm · warm · editorial · full-bleed imagery
+        ════════════════════════════════════════════ */
+        #layout-4 {
+            background: #f5f1eb;
+            overflow-y: auto;
+            overflow-x: hidden;
+            height: 100vh;
+            font-family: 'Cormorant Garamond', 'Times New Roman', serif;
+        }
+
+        /* ── arch header ── */
+        .arch-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 1.6em 2.4em;
+            background: #f5f1eb;
+            border-bottom: 1px solid #d8cfbf;
+        }
+        .arch-logo {
+            font-family: 'Cormorant Garamond', serif;
+            font-size: 1.05em;
+            font-weight: 300;
+            letter-spacing: 0.18em;
+            text-transform: uppercase;
+            color: #1a1a1a;
+        }
+        .arch-nav {
+            display: flex;
+            gap: 2.4em;
+            list-style: none;
+        }
+        .arch-nav a {
+            font-family: monospace;
+            font-size: 0.62em;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #888;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .arch-nav a:hover,
+        .arch-nav a.arch-nav-active { color: #1a1a1a; }
+
+        /* ── hero ── */
+        .arch-hero {
+            position: relative;
+            height: 88vh;
+            overflow: hidden;
+            display: flex;
+            align-items: flex-end;
+        }
+        .arch-hero-img {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(135deg, #b8a898 0%, #8e7d6a 40%, #c8b8a0 100%);
+            transition: transform 0.6s cubic-bezier(0.25,0.46,0.45,0.94);
+        }
+        .arch-hero:hover .arch-hero-img { transform: scale(1.02); }
+        .arch-hero-overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(to top, rgba(20,16,10,0.52) 0%, transparent 55%);
+        }
+        .arch-hero-caption {
+            position: relative;
+            z-index: 2;
+            padding: 2.8em 2.4em;
+            color: #f5f1eb;
+            width: 100%;
+        }
+        .arch-hero-label {
+            font-family: monospace;
+            font-size: 0.6em;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: rgba(245,241,235,0.6);
+            margin-bottom: 0.6em;
+        }
+        .arch-hero-title {
+            font-size: clamp(2.8rem, 6vw, 5.5rem);
+            font-weight: 300;
+            line-height: 1.0;
+            letter-spacing: 0.02em;
+            margin-bottom: 0.5em;
+        }
+        .arch-hero-meta {
+            font-family: monospace;
+            font-size: 0.62em;
+            letter-spacing: 0.1em;
+            color: rgba(245,241,235,0.55);
+            text-transform: uppercase;
+            display: flex;
+            gap: 2em;
+        }
+
+        /* ── section title ── */
+        .arch-section-head {
+            display: flex;
+            align-items: baseline;
+            justify-content: space-between;
+            padding: 3em 2.4em 1.2em;
+            border-bottom: 1px solid #d8cfbf;
+        }
+        .arch-section-title {
+            font-size: 0.65em;
+            font-family: monospace;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #999;
+        }
+        .arch-section-count {
+            font-family: monospace;
+            font-size: 0.6em;
+            color: #bbb;
+            letter-spacing: 0.06em;
+        }
+
+        /* ── project list (two-up) ── */
+        .arch-projects {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: #d8cfbf;
+        }
+        .arch-project {
+            background: #f5f1eb;
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            overflow: hidden;
+        }
+        .arch-project:nth-child(3n+1) { grid-column: 1 / -1; }
+
+        .arch-proj-img {
+            width: 100%;
+            aspect-ratio: 16 / 9;
+            overflow: hidden;
+            position: relative;
+        }
+        .arch-project:nth-child(3n+1) .arch-proj-img { aspect-ratio: 21 / 9; }
+
+        .arch-proj-img-inner {
+            position: absolute;
+            inset: 0;
+            transition: transform 0.5s cubic-bezier(0.25,0.46,0.45,0.94);
+        }
+        .arch-project:hover .arch-proj-img-inner { transform: scale(1.04); }
+
+        /* palette of warm image tones */
+        .arch-project:nth-child(1) .arch-proj-img-inner  { background: linear-gradient(135deg, #c9bba8 0%, #a09080 100%); }
+        .arch-project:nth-child(2) .arch-proj-img-inner  { background: linear-gradient(135deg, #b0a898 0%, #7d7060 100%); }
+        .arch-project:nth-child(3) .arch-proj-img-inner  { background: linear-gradient(145deg, #c4b89a 0%, #988068 100%); }
+        .arch-project:nth-child(4) .arch-proj-img-inner  { background: linear-gradient(135deg, #bdb0a0 0%, #8a7a6a 100%); }
+        .arch-project:nth-child(5) .arch-proj-img-inner  { background: linear-gradient(125deg, #c8c0b0 0%, #948070 100%); }
+        .arch-project:nth-child(6) .arch-proj-img-inner  { background: linear-gradient(155deg, #b8a890 0%, #807060 100%); }
+        .arch-project:nth-child(7) .arch-proj-img-inner  { background: linear-gradient(135deg, #cac0b0 0%, #a09080 100%); }
+        .arch-project:nth-child(8) .arch-proj-img-inner  { background: linear-gradient(135deg, #b5a898 0%, #857060 100%); }
+
+        .arch-proj-info {
+            padding: 1.4em 1.6em 1.8em;
+            border-top: 1px solid #d8cfbf;
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 1em;
+        }
+        .arch-proj-title {
+            font-size: clamp(1.1rem, 2.2vw, 1.7rem);
+            font-weight: 300;
+            line-height: 1.15;
+            color: #1a1a1a;
+            letter-spacing: 0.01em;
+        }
+        .arch-proj-sub {
+            font-family: monospace;
+            font-size: 0.58em;
+            color: #aaa;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            margin-top: 0.5em;
+        }
+        .arch-proj-year {
+            font-family: monospace;
+            font-size: 0.6em;
+            color: #bbb;
+            letter-spacing: 0.06em;
+            white-space: nowrap;
+            margin-top: 0.3em;
+        }
+
+        /* ── studio strip ── */
+        .arch-studio {
+            padding: 5em 2.4em;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 4em;
+            align-items: center;
+            border-top: 1px solid #d8cfbf;
+            margin-top: 1px;
+            background: #f5f1eb;
+        }
+        .arch-studio-heading {
+            font-size: clamp(2rem, 4.5vw, 3.8rem);
+            font-weight: 300;
+            line-height: 1.1;
+            letter-spacing: 0.02em;
+            color: #1a1a1a;
+        }
+        .arch-studio-heading em {
+            font-style: italic;
+            color: #a09080;
+        }
+        .arch-studio-body {
+            font-size: 0.95em;
+            font-weight: 300;
+            line-height: 1.8;
+            color: #666;
+            letter-spacing: 0.01em;
+        }
+        .arch-studio-body p + p { margin-top: 1.2em; }
+        .arch-studio-cta {
+            display: inline-block;
+            margin-top: 2em;
+            font-family: monospace;
+            font-size: 0.62em;
+            letter-spacing: 0.14em;
+            text-transform: uppercase;
+            color: #1a1a1a;
+            text-decoration: none;
+            padding-bottom: 2px;
+            border-bottom: 1px solid #1a1a1a;
+            transition: opacity 0.15s;
+        }
+        .arch-studio-cta:hover { opacity: 0.5; }
+
+        /* ── arch footer ── */
+        .arch-footer {
+            border-top: 1px solid #d8cfbf;
+            padding: 2em 2.4em;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: #f5f1eb;
+        }
+        .arch-footer-name {
+            font-family: monospace;
+            font-size: 0.6em;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            color: #bbb;
+        }
+        .arch-footer-links {
+            display: flex;
+            gap: 2em;
+            list-style: none;
+        }
+        .arch-footer-links a {
+            font-family: monospace;
+            font-size: 0.58em;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            color: #bbb;
+            text-decoration: none;
+            transition: color 0.15s;
+        }
+        .arch-footer-links a:hover { color: #1a1a1a; }
+    </style>
+</head>
+<body class="explore">
+
+    <nav class="exp-switcher">
+        <button class="exp-tab active" data-layout="1">01 scatter</button>
+        <button class="exp-tab"        data-layout="2">02 type</button>
+        <button class="exp-tab"        data-layout="3">03 grid</button>
+        <button class="exp-tab"        data-layout="4">04 arch</button>
+    </nav>
+
+
+    <!-- ══════════════════════════════
+         01 SCATTER
+    ══════════════════════════════ -->
+    <div id="layout-1" class="exp-layout visible">
+        <div class="scatter-canvas" id="scatter-canvas"></div>
+        <span class="sc-hint">drag to explore →</span>
+    </div>
+
+
+    <!-- ══════════════════════════════
+         02 TYPE
+    ══════════════════════════════ -->
+    <div id="layout-2" class="exp-layout">
+        <div class="type-head">
+            <h1 class="type-head-name">alanah 林 — work</h1>
+            <div class="type-fbar">
+                <button class="tf active" data-f="all">All</button>
+                <button class="tf" data-f="product">Product</button>
+                <button class="tf" data-f="brand">Brand</button>
+                <button class="tf" data-f="web">Web</button>
+                <button class="tf" data-f="artifact">Artifact</button>
+            </div>
+        </div>
+        <div id="type-rows"></div>
+    </div>
+
+
+    <!-- ══════════════════════════════
+         03 GRID
+    ══════════════════════════════ -->
+    <div id="layout-3" class="exp-layout">
+
+        <span class="grid-wordmark">alanah 林</span>
+        <div class="grid-canvas" id="grid-canvas"></div>
+        <div class="grid-fbar" id="grid-fbar">
+            <button class="gf active" data-gf="all">All</button>
+            <button class="gf" data-gf="product">Product</button>
+            <button class="gf" data-gf="brand">Brand</button>
+            <button class="gf" data-gf="web">Web</button>
+            <button class="gf" data-gf="artifact">Artifact</button>
+        </div>
+    </div>
+
+
+    <!-- ══════════════════════════════
+         04 ARCH
+         BU Arquitectura — calm · warm · editorial
+    ══════════════════════════════ -->
+    <div id="layout-4" class="exp-layout">
+
+        <header class="arch-header">
+            <span class="arch-logo">alanah 林</span>
+            <nav>
+                <ul class="arch-nav">
+                    <li><a href="#" class="arch-nav-active">Work</a></li>
+                    <li><a href="#">Studio</a></li>
+                    <li><a href="#">Contact</a></li>
+                </ul>
+            </nav>
+        </header>
+
+        <!-- hero: featured project -->
+        <section class="arch-hero">
+            <div class="arch-hero-img"></div>
+            <div class="arch-hero-overlay"></div>
+            <div class="arch-hero-caption">
+                <p class="arch-hero-label">Featured — 2025</p>
+                <h1 class="arch-hero-title">Checkpoint</h1>
+                <div class="arch-hero-meta">
+                    <span>Product Design</span>
+                    <span>2025 —</span>
+                </div>
+            </div>
+        </section>
+
+        <!-- projects section -->
+        <div class="arch-section-head">
+            <span class="arch-section-title">Selected Work</span>
+            <span class="arch-section-count" id="arch-count"></span>
+        </div>
+
+        <div class="arch-projects" id="arch-projects"></div>
+
+        <!-- studio strip -->
+        <section class="arch-studio">
+            <div>
+                <h2 class="arch-studio-heading">Design shaped by<br><em>intention.</em></h2>
+            </div>
+            <div class="arch-studio-body">
+                <p>Independent designer working across product, brand, and web — with a focus on systems that feel considered and inevitable.</p>
+                <p>Each project begins with a question about form: what does this thing need to become?</p>
+                <a class="arch-studio-cta" href="#">About the studio →</a>
+            </div>
+        </section>
+
+        <footer class="arch-footer">
+            <span class="arch-footer-name">alanah 林 — 2025</span>
+            <ul class="arch-footer-links">
+                <li><a href="#">Instagram</a></li>
+                <li><a href="#">Twitter</a></li>
+                <li><a href="#">Email</a></li>
+            </ul>
+        </footer>
+
+    </div>
+
+
+    <script>
+    const PROJECTS = [
+        { title: 'Newforms Festival', tag: 'Brand / Web',     year: '2021',      cat: 'brand web',     href: '#' },
+        { title: 'Analog + Digital',  tag: 'Web Design',      year: '2021–2022', cat: 'web',           href: '#' },
+        { title: 'Future Primitive',  tag: 'Product / Brand', year: '2022—',     cat: 'product brand', href: 'https://fp.inc' },
+        { title: 'Refraction',        tag: 'Brand / Web',     year: '2022',      cat: 'brand web',     href: '#' },
+        { title: 'Tokenbound',        tag: 'Product Design',  year: '2022',      cat: 'product',       href: '#' },
+        { title: 'Stapleverse',       tag: 'Product Design',  year: '2022',      cat: 'product',       href: '#' },
+        { title: 'byseanbrown',       tag: 'Web Design',      year: '2022',      cat: 'web',           href: '#' },
+        { title: 'Sapienz',           tag: 'Product Design',  year: '2023',      cat: 'product',       href: '#' },
+        { title: 'Myles Magazine',    tag: 'Web Design',      year: '2023',      cat: 'web',           href: '#' },
+        { title: 'Goonies Calendar',  tag: 'Artifact',        year: '2023',      cat: 'artifact',      href: '#' },
+        { title: 'Perma',             tag: 'Product Design',  year: '2024–2025', cat: 'product',       href: '#' },
+        { title: 'Checkpoint',        tag: 'Product Design',  year: '2025—',     cat: 'product',       href: 'https://checkpoint.pictures' },
+        { title: "benny's bistro",    tag: 'Artifact',        year: '2025',      cat: 'artifact',      href: '#' },
+    ];
+
+    /* ── tab switcher ── */
+    document.querySelectorAll('.exp-tab').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.exp-tab').forEach(b => b.classList.remove('active'));
+            document.querySelectorAll('.exp-layout').forEach(l => l.classList.remove('visible'));
+            btn.classList.add('active');
+            document.getElementById('layout-' + btn.dataset.layout).classList.add('visible');
+        });
+    });
+
+
+    /* ══════════════════════════════════════
+       01 — SCATTER
+    ══════════════════════════════════════ */
+    const positions = [
+        [ 80,  90], [340, 60], [620, 140], [900,  50], [160, 320],
+        [460, 280], [740, 360], [60, 500], [380, 460], [680, 540],
+        [240, 620], [560, 600], [860, 430],
+    ];
+    // slight rotations for organic feel
+    const rotations = [-1.5, 0.8, -0.5, 1.2, -0.9, 0.4, -1.1, 1.8, -0.3, 0.7, -1.4, 0.6, -0.8];
+
+    const scatterCanvas = document.getElementById('scatter-canvas');
+    PROJECTS.forEach((p, i) => {
+        const el = document.createElement('div');
+        el.className = 'sc-item';
+        el.style.left      = positions[i][0] + 'px';
+        el.style.top       = positions[i][1] + 'px';
+        el.style.transform = `rotate(${rotations[i]}deg)`;
+        el.dataset.href    = p.href;
+        el.innerHTML = `
+            <span class="sc-num">${String(i).padStart(2,'0')} — ${p.cat.split(' ')[0].toUpperCase()}</span>
+            <span class="sc-title">${p.title}</span>
+            <div class="sc-meta"><span>${p.tag}</span><span>${p.year}</span></div>
+        `;
+        if (p.href !== '#') el.addEventListener('click', () => window.open(p.href, '_blank', 'noopener'));
+        scatterCanvas.appendChild(el);
+    });
+
+    // pan
+    const l1 = document.getElementById('layout-1');
+    let drag = false, ox = 0, oy = 0, tx = 80, ty = 60;
+    l1.addEventListener('mousedown', e => { drag = true; ox = e.clientX - tx; oy = e.clientY - ty; });
+    window.addEventListener('mousemove', e => {
+        if (!drag) return;
+        tx = e.clientX - ox;
+        ty = e.clientY - oy;
+        scatterCanvas.style.transform = `translate(${tx}px,${ty}px)`;
+    });
+    window.addEventListener('mouseup', () => { drag = false; });
+
+
+    /* ══════════════════════════════════════
+       02 — TYPE
+    ══════════════════════════════════════ */
+    const typeRows = document.getElementById('type-rows');
+    PROJECTS.forEach((p, i) => {
+        const row = document.createElement('div');
+        row.className    = 'type-row';
+        row.dataset.cat  = p.cat;
+        row.dataset.href = p.href;
+        row.innerHTML = `
+            <span class="tr-num">${String(i).padStart(2,'0')}</span>
+            <span class="tr-name">${p.title}</span>
+            <span class="tr-year">${p.year}</span>
+        `;
+        if (p.href !== '#') row.addEventListener('click', () => window.open(p.href, '_blank', 'noopener'));
+        typeRows.appendChild(row);
+    });
+
+    document.querySelectorAll('.tf').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.tf').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const f = btn.dataset.f;
+            document.querySelectorAll('.type-row').forEach(row => {
+                row.classList.toggle('hidden', f !== 'all' && !row.dataset.cat.includes(f));
+            });
+        });
+    });
+
+
+    /* ══════════════════════════════════════
+       03 — GRID  (5 × 3 = 15 cells)
+    ══════════════════════════════════════ */
+    const gridCanvas = document.getElementById('grid-canvas');
+    for (let i = 0; i < 15; i++) {
+        const p    = PROJECTS[i];
+        const cell = document.createElement('div');
+        if (p) {
+            cell.className   = 'gc';
+            cell.dataset.cat = p.cat;
+            cell.dataset.href = p.href;
+            cell.innerHTML = `
+                <span class="gc-index">${String(i).padStart(2,'0')}</span>
+                <div class="gc-reveal">
+                    <div class="gc-name">${p.title}</div>
+                    <div class="gc-cat">${p.tag}</div>
+                    <div class="gc-yr">${p.year}</div>
+                </div>
+            `;
+            if (p.href !== '#') cell.addEventListener('click', () => window.open(p.href, '_blank', 'noopener'));
+        } else {
+            cell.className = 'gc gc-empty';
+            cell.innerHTML = `<span class="gc-index">—</span>`;
+        }
+        gridCanvas.appendChild(cell);
+    }
+
+    document.querySelectorAll('.gf').forEach(btn => {
+        btn.addEventListener('click', () => {
+            document.querySelectorAll('.gf').forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+            const f = btn.dataset.gf;
+            document.querySelectorAll('.gc:not(.gc-empty)').forEach(cell => {
+                cell.classList.toggle('gf-hidden', f !== 'all' && !cell.dataset.cat.includes(f));
+            });
+        });
+    });
+
+
+    /* ══════════════════════════════════════
+       04 — ARCH
+    ══════════════════════════════════════ */
+    const archProjects = document.getElementById('arch-projects');
+    // skip index 0 (shown in hero as featured)
+    const archList = PROJECTS.slice(1);
+    document.getElementById('arch-count').textContent = archList.length + ' projects';
+
+    archList.forEach((p, i) => {
+        const card = document.createElement('div');
+        card.className   = 'arch-project';
+        card.dataset.cat = p.cat;
+        card.innerHTML = `
+            <div class="arch-proj-img">
+                <div class="arch-proj-img-inner"></div>
+            </div>
+            <div class="arch-proj-info">
+                <div>
+                    <div class="arch-proj-title">${p.title}</div>
+                    <div class="arch-proj-sub">${p.tag}</div>
+                </div>
+                <div class="arch-proj-year">${p.year}</div>
+            </div>
+        `;
+        if (p.href !== '#') card.addEventListener('click', () => window.open(p.href, '_blank', 'noopener'));
+        archProjects.appendChild(card);
+    });
+
+    // hero scroll parallax
+    const archHeroImg = document.querySelector('#layout-4 .arch-hero-img');
+    document.getElementById('layout-4').addEventListener('scroll', function() {
+        const s = this.scrollTop;
+        if (archHeroImg) archHeroImg.style.transform = `translateY(${s * 0.3}px)`;
+    });
+    </script>
+    <script src="butterfly.js" defer></script>
+</body>
+</html>
