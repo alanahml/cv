@@ -378,7 +378,9 @@ h3, h4, h5 {
 
 a {
     color: rgb(6, 88, 73);
+    width: fit-content;
     text-decoration: none;
+    display: inline-block;
     transition: all ease-in-out 300ms;
     text-wrap: nowrap
 }

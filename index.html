@@ -115,14 +115,16 @@
         /* ── corner numbers ── */
         .pf-num {
             position: absolute;
-            font-size: 12px;
+            font-size: 0.8em;
             color: #000;
-            letter-spacing: 0.72px;
-            line-height: normal;
+        }
+        .pf-num:hover {
+            text-shadow: rgb(4, 255, 109);
+            font-weight: 700;
         }
 
         /* Positioned relative to viewport center, matching Figma 1280×800 canvas */
-        .pf-n1 { left: calc(50% - 266.68px); top: calc(50% - 167.76px); text-shadow: 0 0 4px #34ff41; }
+        .pf-n1 { left: calc(50% - 266.68px); top: calc(50% - 167.76px);}
         .pf-n2 { left: calc(50% + 261.45px); top: calc(50% - 167.76px); }
         .pf-n3 { left: calc(50% - 268.18px); top: calc(50% + 179.68px); }
         .pf-n4 { left: calc(50% + 261.45px); top: calc(50% + 179.68px); }
@@ -163,6 +165,76 @@
             display: block;
         }
 
+        /* ── project media sources (hidden, used as data store) ── */
+        .pf-projects { display: none; }
+
+        /* ── project link (inline beside corner number) ── */
+        .pf-num a {
+            position: absolute;
+            top: 0;
+            left: calc(100% + 8px);
+            white-space: nowrap;
+            color: inherit;
+            font-size: inherit;
+            letter-spacing: inherit;
+            text-decoration: none;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 150ms ease;
+        }
+
+        .pf-n2 a, .pf-n4 a {
+            left: auto;
+            right: calc(100% + 8px);
+        }
+
+        .pf-num:hover a {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .pf-num a::after {
+            content: '';
+            position: absolute;
+            bottom: -1px;
+            left: 0;
+            width: 100%;
+            height: 1px;
+            background: currentColor;
+            transform: scaleX(0);
+            transform-origin: left;
+            transition: transform 250ms ease;
+        }
+
+        .pf-n2 a::after, .pf-n4 a::after {
+            transform-origin: right;
+        }
+
+        .pf-num a:hover::after {
+            transform: scaleX(1);
+        }
+
+        /* Bridge the gap between the number and the link so hover doesn't flicker */
+        .pf-num::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            bottom: -4px;
+            left: -4px;
+            right: -20px;
+        }
+
+        .pf-n2::after, .pf-n4::after {
+            right: -4px;
+            left: -20px;
+        }
+
+        /* Mobile: tap to reveal */
+        .pf-num.pf-touch-active a {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
         /* ── plants ── */
         .pf-plants {
             position: absolute;
@@ -201,10 +273,26 @@
         </div>
 
         <!-- corner numbers -->
-        <p class="pf-num pf-n1">1</p>
-        <p class="pf-num pf-n2">2</p>
-        <p class="pf-num pf-n3">3</p>
-        <p class="pf-num pf-n4">4</p>
+        <p class="pf-num pf-n1" data-num="1">1<a href="https://fp.inc" target="_blank" rel="noopener">future primitive</a></p>
+        <p class="pf-num pf-n2" data-num="2">2<a href="https://checkpoint.pictures" target="_blank" rel="noopener">checkpoint</a></p>
+        <p class="pf-num pf-n3" data-num="3">3<a href="https://tokenbound.org" target="_blank" rel="noopener">tokenbound.org</a></p>
+        <p class="pf-num pf-n4" data-num="4">4<a href="https://byseanbrown.com" target="_blank" rel="noopener">byseanbrown.com</a></p>
+
+        <!-- project media sources -->
+        <div class="pf-projects">
+            <div class="pf-project" data-num="1" data-url="https://fp.inc" data-label="future primitive">
+                <img src="assets/fpsite.webp" />
+            </div>
+            <div class="pf-project" data-num="2" data-url="https://checkpoint.pictures" data-label="checkpoint">
+                <img src="assets/checkpoint.webp" />
+            </div>
+            <div class="pf-project" data-num="3" data-url="https://tokenbound.org" data-label="tokenbound.org">
+                <img src="assets/tokenbound.webp" />
+            </div>
+            <div class="pf-project" data-num="4" data-url="https://byseanbrown.com" data-label="byseanbrown.com">
+                <img src="assets/byseanbrown.webp" />
+            </div>
+        </div>
 
         <!-- cursor decoration -->
         <div class="pf-cursor">
@@ -276,6 +364,44 @@
             const sx = facingLeft ? -1 : 1;
             pfCursor.style.transform = `translate(${e.clientX - 25}px, ${e.clientY - 20}px) scaleX(${sx})`;
         });
+
+        // ── pf-num hover → swap pf-media image ───────────────────────
+        const pfMediaImg = document.querySelector('.pf-media img');
+        const defaultSrc = pfMediaImg.src;
+
+        function activateNum(num) {
+            const project = document.querySelector(`.pf-project[data-num="${num.dataset.num}"]`);
+            const img = project && project.querySelector('img');
+            if (img) pfMediaImg.src = img.src;
+        }
+
+        function deactivateAll() {
+            document.querySelectorAll('.pf-num').forEach(n => n.classList.remove('pf-touch-active'));
+            pfMediaImg.src = defaultSrc;
+        }
+
+        document.querySelectorAll('.pf-num').forEach(num => {
+            // Desktop hover
+            num.addEventListener('mouseenter', () => activateNum(num));
+            num.addEventListener('mouseleave', () => { pfMediaImg.src = defaultSrc; });
+
+            // Mobile: first tap reveals link, tap on link navigates
+            num.addEventListener('touchstart', e => {
+                if (e.target.closest('a')) return; // let the link handle its own tap
+                e.preventDefault();
+                const wasActive = num.classList.contains('pf-touch-active');
+                deactivateAll();
+                if (!wasActive) {
+                    num.classList.add('pf-touch-active');
+                    activateNum(num);
+                }
+            }, { passive: false });
+        });
+
+        // Tap outside any pf-num dismisses revealed link
+        document.addEventListener('touchstart', e => {
+            if (!e.target.closest('.pf-num')) deactivateAll();
+        }, { passive: true });
 
         // ── tagline scramble ──────────────────────────────────────────
         (function () {
