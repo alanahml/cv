@@ -159,7 +159,7 @@ body {
     margin: 0;
     padding: 0;
     /* mute pastel gradient that slowly shifts */
-    background: linear-gradient(120deg, #f0f0f0 0%, #e0e0e0 50%, #d0d0d0 100%);
+    background: linear-gradient(120deg, #ffffff 0%, #b5d6c7 50%, #f0f0f0 100%);
     background-size: 600% 600%;
     animation: gradientNoise 120s ease infinite;
     background-position: center center;
@@ -179,14 +179,7 @@ body {
     opacity: 0.05;
     z-index: 0;
   }
-.weatherHome {
-    padding: 4em;
-    padding-top: 6em;
-    background: linear-gradient(-45deg, #f9a467, #925aec, #23a6d5, #23d5ab);
-	background-size: 400% 400%;
-	animation: gradient 25s ease infinite;
-	height: 100vh;
-}
+
 
 /* fixed-nav button (use a class if more buttons are added) */
 button.nav-toggle {
