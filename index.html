@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>alanah 林</title>
+    <title>alanah lam</title>
     <link rel="stylesheet" href="styles.css">
     <style>
         @font-face {
@@ -46,7 +46,7 @@
             left: 50%;
             transform: translateX(-50%);
             top: 13px;
-            font-size: 14px;
+            font-size: 0.8em;
             color: #71717a;
             letter-spacing: 0.84px;
             white-space: nowrap;
@@ -57,7 +57,7 @@
             position: absolute;
             right: 22px;
             top: 17px;
-            font-size: 14px;
+            font-size: 0.8em;
             color: #71717a;
             letter-spacing: 0.84px;
             white-space: nowrap;
@@ -99,7 +99,7 @@
         }
 
         .pf-lately-label {
-            font-size: 14px;
+            font-size: 0.8em;
             color: #71717a;
             letter-spacing: 0.84px;
         }
@@ -107,8 +107,8 @@
         .pf-lately-list {
             display: flex;
             flex-direction: column;
-            gap: 8px;
-            font-size: 16px;
+            gap: 0.25em;
+            font-size: 0.8em;
             color: #000;
         }
 
@@ -127,15 +127,20 @@
         .pf-n3 { left: calc(50% - 268.18px); top: calc(50% + 179.68px); }
         .pf-n4 { left: calc(50% + 261.45px); top: calc(50% + 179.68px); }
 
+        /* ── tagline scramble ── */
+        .pf-tagline .sc { display: inline-block; }
+
         /* ── cursor decoration ── */
         .pf-cursor {
-            position: absolute;
-            right: 226px;
-            top: 352px;
+            position: fixed;
+            left: 0;
+            top: 0;
             width: 50px;
             height: 40px;
             filter: blur(4px);
             pointer-events: none;
+            transform: translate(-50px, -50px);
+            transition: transform 8000ms cubic-bezier(0.01, 0, 1, 1);
         }
 
         .pf-cursor img { width: 100%; height: 100%; object-fit: cover; }
@@ -162,7 +167,7 @@
         .pf-plants {
             position: absolute;
             right: 11px;
-            top: 776px;
+            bottom: 32px;
             width: 100px;
             height: 46.52px;
             pointer-events: none;
@@ -175,7 +180,7 @@
     <div class="portfolio">
 
         <!-- top bar -->
-        <p class="pf-name">alanah lam</p>
+        <p class="pf-name">alanah 林</p>
         <p class="pf-tagline">this is a living archive</p>
         <p class="pf-clock" id="pf-clock"></p>
 
@@ -188,10 +193,10 @@
         <div class="pf-lately">
             <p class="pf-lately-label">lately (2026)</p>
             <div class="pf-lately-list">
-                <p>a photo booth that connects people</p>
-                <p>a photo network where only humans can post</p>
-                <p>an upcycled textile practice</p>
-                <p>a return to the office</p>
+                <a href="https://checkpoint.pictures">a print media network</a>
+                <a href="https://per.ma">a photo app where only humans can post</a>
+                <a href="https://highlysensitive.xyz">an upcycled textile practice</a>
+                <a href="https://twitch.tv/letstouchbase">a return to the office</a>
             </div>
         </div>
 
@@ -203,23 +208,26 @@
 
         <!-- cursor decoration -->
         <div class="pf-cursor">
-            <img src="http://localhost:3845/assets/042ce875f8108c420f0c25db0c8566debb4025fc.png" alt="" />
+            <img src="assets/butterfly.gif" alt="butterfly cursor" />
         </div>
 
         <!-- thumbnail photos -->
         <div class="pf-thumb pf-thumb1">
-            <img src="http://localhost:3845/assets/dcd2c689a2f96ff872c681a8c7d6c5106cb3897c.png" alt="" />
+            <img src="assets/field480.webp" alt="field.tox" />
         </div>
         <div class="pf-thumb pf-thumb2">
-            <img src="http://localhost:3845/assets/ce2f5a412afb8f7c31c65629fd568fdd0ac69f0e.png" alt="" />
+            <img src="/assets/beepixel480.webp" alt="pixel-threshold.tox" />
         </div>
 
         <!-- plants -->
         <div class="pf-plants">
             <img src="assets/plants.svg" alt="" />
         </div>
+       
 
     </div>
+
+     <img src="assets/cc-head.svg" alt="cc head" style="position: absolute; right: 0px; bottom: 0px; z-index: -99; width: 20vw; height: auto; pointer-events: none;" />
 
     <script>
         function updateClock() {
@@ -235,6 +243,86 @@
         }
         updateClock();
         setInterval(updateClock, 1000);
+
+        // ── cursor follower ───────────────────────────────────────────
+        const pfCursor = document.querySelector('.pf-cursor');
+        const pfCursorImg = pfCursor.querySelector('img');
+
+        // canvas used to freeze the gif on a single frame once settled
+        const snapCanvas = document.createElement('canvas');
+        snapCanvas.width = 50; snapCanvas.height = 40;
+        snapCanvas.style.cssText = 'position:absolute;inset:0;width:100%;height:100%;display:none;';
+        pfCursor.appendChild(snapCanvas);
+
+        function freezeGif() {
+            snapCanvas.getContext('2d').drawImage(pfCursorImg, 0, 0, 50, 40);
+            pfCursorImg.style.display = 'none';
+            snapCanvas.style.display = 'block';
+        }
+        function thawGif() {
+            snapCanvas.style.display = 'none';
+            pfCursorImg.style.display = '';
+        }
+
+        pfCursor.addEventListener('transitionend', freezeGif);
+
+        let lastX = null, facingLeft = false;
+        document.addEventListener('mousemove', e => {
+            thawGif();
+            if (lastX !== null && e.clientX !== lastX) {
+                facingLeft = e.clientX < lastX;
+            }
+            lastX = e.clientX;
+            const sx = facingLeft ? -1 : 1;
+            pfCursor.style.transform = `translate(${e.clientX - 25}px, ${e.clientY - 20}px) scaleX(${sx})`;
+        });
+
+        // ── tagline scramble ──────────────────────────────────────────
+        (function () {
+            const GEO = '林°❀⋆.ೃ࿔*:･⬡✧';
+            const el  = document.querySelector('.pf-tagline');
+            const ORIGINAL = el.textContent;
+
+            function randGeo() {
+                return GEO[Math.floor(Math.random() * GEO.length)];
+            }
+
+            function scramble() {
+                const FADE_OUT = 300;
+                const FADE_IN  = 800;
+
+                // Phase 1 – all glyphs visible immediately
+                el.innerHTML = [...ORIGINAL].map(ch =>
+                    `<span class="sc">${ch === ' ' ? '\u00a0' : randGeo()}</span>`
+                ).join('');
+
+                const spans = [...el.querySelectorAll('span.sc')];
+
+                // Phase 2 – staggered crossfade in random order
+                const order = spans
+                    .map((_, i) => i)
+                    .filter(i => ORIGINAL[i] !== ' ')
+                    .sort(() => Math.random() - 0.5);
+
+                order.forEach((i, step) => {
+                    const span = spans[i];
+                    setTimeout(() => {
+                        span.style.transition = `opacity ${FADE_OUT}ms ease`;
+                        span.style.opacity = '0';
+                        setTimeout(() => {
+                            span.textContent = ORIGINAL[i];
+                            span.style.transition = `opacity ${FADE_IN}ms cubic-bezier(0.25, 0, 0.5, 1)`;
+                            span.style.opacity = '1';
+                            if (step === order.length - 1) {
+                                setTimeout(() => { el.textContent = ORIGINAL; }, FADE_IN + 100);
+                            }
+                        }, FADE_OUT);
+                    }, step * 80);
+                });
+            }
+            scramble();
+            setInterval(scramble, 8 * 60 * 1000);
+        })();
     </script>
 </body>
 </html>

@@ -379,7 +379,8 @@ h3, h4, h5 {
 a {
     color: rgb(6, 88, 73);
     text-decoration: none;
-    transition: all ease-in-out 300ms ;
+    transition: all ease-in-out 300ms;
+    text-wrap: nowrap
 }
 
 a:hover {
@@ -388,10 +389,11 @@ a:hover {
     filter: blur(0.05em);
     letter-spacing: 0.05em;
     text-decoration: dotted;
+    text-wrap: nowrap;
 }
 
 img {
-    border-radius: 1em;
+    border-radius: .25em;
     width: 100%;
     height: auto;
     image-rendering: pixelated;
